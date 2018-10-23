@@ -12330,8 +12330,7 @@ body.collapsed .navmenu-inverse .navmenu-brand {
   padding: 10px 0;
 }
 body.collapsed .navmenu-inverse .navmenu-brand .logo-small {
-  display: inline;
-  height: 32px;
+  display: block;
 }
 body.collapsed .navmenu-inverse .navmenu-brand .logo-main {
   display: none;
@@ -12350,11 +12349,20 @@ body.collapsed .navmenu-inverse span.title {
   outline: none;
 }
 .navmenu-inverse .navmenu-brand .logo-main {
-  width: 100%;
+  background: url('../img/logo-menu.png') 0 0 no-repeat;
+  background-size: contain;
+  width: 190px;
+  height: 36px;
   padding: 9px 0;
+  margin-left: -11px;
 }
 .navmenu-inverse .navmenu-brand .logo-small {
   display: none;
+  background: url('../img/logo.png') 0 0 no-repeat;
+  background-size: contain;
+  width: 50px;
+  height: 36px;
+  margin-left: 4px;
 }
 .navmenu-inverse .navmenu-nav > li {
   font-size: 15px;
@@ -12443,8 +12451,7 @@ body.collapsed .navmenu-inverse span.title {
     padding: 10px 0;
   }
   .navmenu-inverse .navmenu-brand .logo-small {
-    display: inline;
-    height: 32px;
+    display: block;
   }
   .navmenu-inverse .navmenu-brand .logo-main {
     display: none;
@@ -12514,6 +12521,14 @@ body.collapsed .navmenu-inverse span.title {
 .table > tbody > tr:nth-child(2n+1),
 .panel .table > tbody > tr:nth-child(2n+1) {
   background: #fff;
+}
+.table > tbody > tr.dropping,
+.panel .table > tbody > tr.dropping {
+  background: #f2fbff !important;
+}
+.table > tbody > tr.dropping > td:not(.text-limit-cell),
+.panel .table > tbody > tr.dropping > td:not(.text-limit-cell) {
+  background: #f2fbff !important;
 }
 .table > tbody > tr > td,
 .panel .table > tbody > tr > td {
@@ -13028,8 +13043,27 @@ li.sitemap-item .actions.one {
   float: right;
   width: auto;
 }
+.col-sm-12.buttons.buttons-fixed {
+  background: #f2f2f2;
+  background: rgba(242, 242, 242, 0.85);
+  position: fixed;
+  left: 1152px;
+  padding: 15px;
+  margin-top: -65px;
+  white-space: nowrap;
+  z-index: 1800;
+}
+.col-sm-12.buttons.buttons-fixed #main-submit .btn-text {
+  display: inline-block;
+  width: 64px;
+}
 .col-sm-12.buttons .dropdown-menu {
   text-align: left;
+}
+.col-sm-12.buttons .btn-icon {
+  width: 36px;
+  padding-left: 0;
+  padding-right: 0;
 }
 .btn-labeled.btn-block {
   text-indent: -12px;
@@ -13108,8 +13142,15 @@ li.sitemap-item .actions.one {
 .region-list-toolbar {
   margin-bottom: 0;
 }
+.markdown {
+  border: solid 1px #ddd;
+}
 .markdown .nav-tabs {
-  margin-bottom: 15px;
+  margin: -1px -1px 15px;
+  background: #fff;
+}
+.markdown .content-preview {
+  padding: 5px 15px 15px;
 }
 .markdown .editor-toolbar {
   border: 0 none;
@@ -13160,8 +13201,15 @@ li.sitemap-item .actions.one {
 .single-region textarea.raw-text {
   border-width: 0;
 }
+.single-region .markdown {
+  border: 0;
+}
+.single-region .markdown .content-preview {
+  padding: 0;
+}
 .single-region .markdown .nav-tabs {
   display: none;
+  margin: 0 0 15px;
 }
 .inline-search {
   border: 0 none;
@@ -13169,6 +13217,9 @@ li.sitemap-item .actions.one {
   margin-top: 10px;
   border-radius: 0;
   box-shadow: unset;
+}
+.inline-search.inline-search-light {
+  background: #fff;
 }
 .list-group-header {
   background: #f8f8f8;
@@ -13273,6 +13324,24 @@ li.sitemap-item .actions.one {
     display: block;
   }
 }
+.region-description {
+  margin: -15px 0 15px;
+  padding: 15px 15px 5px;
+  border-bottom: 1px solid #ddd;
+  background: #eef4f8;
+}
+.region-description.region-list-description {
+  margin: -15px -15px 15px;
+}
+.region-description i {
+  font-size: 20px;
+  float: left;
+  opacity: .25;
+}
+.region-description p {
+  margin-left: 52px;
+  opacity: .5;
+}
 #page-blocks {
   background: url('/manager/assets/img/cream_pixels.png');
   padding: 0;
@@ -13282,6 +13351,9 @@ li.sitemap-item .actions.one {
   padding: 45px 50px 30px;
   font-size: 20px;
   text-align: center;
+}
+#page-blocks .block-info.block-group-info {
+  cursor: pointer;
 }
 #page-blocks .page-blocks-body {
   background: #fff;
@@ -13837,6 +13909,7 @@ li.sitemap-item .actions.one {
 #login .container input {
   padding: 10px 12px;
   border: 0 none;
+  text-align: center;
 }
 #login .container .btn {
   width: 100%;
@@ -13850,7 +13923,7 @@ li.sitemap-item .actions.one {
   padding: 35px;
 }
 #login .container .panel.panel-white .panel-body:first-child {
-  background: #116d9a;
+  background: #116d9a url("../img/seigaiha-overlay.png");
   padding-bottom: 10px;
 }
 #login .container .panel.panel-white .account-banner {
@@ -13918,4 +13991,65 @@ li.sitemap-item .actions.one {
   overflow: hidden;
   animation: notify-dismiss-animation 0.3s ease;
   animation-fill-mode: forwards;
+}
+body.live-preview {
+  background: #999;
+  max-width: initial;
+  margin: 0;
+}
+.preview {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+.preview-header {
+  background: #222;
+  flex: 0 1 auto;
+  height: 64px;
+  padding: 5px;
+  text-align: center;
+}
+.preview-header a {
+  background: #333;
+  color: #fff;
+  display: inline-block;
+  width: 70px;
+  text-align: center;
+  padding: 8px 2px;
+  margin-right: 5px;
+  transition: background-color 0.2s ease-out;
+}
+.preview-header a:hover {
+  background: #444;
+  text-decoration: none;
+  transition: background-color 0.2s ease-out;
+}
+.preview-header a:active {
+  text-decoration: none;
+}
+.preview-header a:focus {
+  text-decoration: none;
+}
+.preview-header a i {
+  font-size: 18px;
+}
+.preview-header a span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding-top: 6px;
+  opacity: .5;
+}
+.preview-body {
+  flex: 1 1 auto;
+}
+.preview-body iframe {
+  width: 100%;
+  max-width: 100%;
+  height: calc(100% - 64px);
+  border: none 0;
+  margin: 0 auto;
+  display: block;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transition: width 0.2s ease-in-out;
 }

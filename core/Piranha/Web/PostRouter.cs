@@ -33,7 +33,11 @@ namespace Piranha.Web
 
                     if (post != null)
                     {
+                        var page = api.Pages.GetById<Models.PageInfo>(post.BlogId);
+                        var site = api.Sites.GetById(page.SiteId);
                         var route = post.Route ?? "/post";
+                        var lastModified = !site.ContentLastModified.HasValue || post.LastModified > site.ContentLastModified 
+                            ? post.LastModified : site.ContentLastModified.Value;
 
                         if (segments.Length > 2)
                         {
@@ -45,11 +49,11 @@ namespace Piranha.Web
                             PageId = post.BlogId,
                             Route = route,
                             QueryString = $"id={post.Id}&piranha_handled=true",
-                            IsPublished = post.Published.HasValue && post.Published.Value <= DateTime.Now,
+                            IsPublished = post.Published.HasValue && page.Published.HasValue && post.Published.Value <= DateTime.Now && page.Published.Value <= DateTime.Now,
                             CacheInfo = new HttpCacheInfo
                             {
-                                EntityTag = Utils.GenerateETag(post.Id.ToString(), post.LastModified),
-                                LastModified = post.LastModified
+                                EntityTag = Utils.GenerateETag(post.Id.ToString(), lastModified),
+                                LastModified = lastModified
                             }
                         };
                     }

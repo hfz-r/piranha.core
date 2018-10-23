@@ -20,19 +20,7 @@ namespace Piranha.AttributeBuilder
 {
     public abstract class ContentTypeBuilder<T, TType> where T : ContentTypeBuilder<T, TType> where TType : ContentType
     {
-        #region Members
         protected readonly List<Type> _types = new List<Type>();
-        protected readonly IApi _api;
-        #endregion
-
-        /// <summary>
-        /// Default constructor.
-        /// </summary>
-        /// <param name="api">The current api</param>
-        public ContentTypeBuilder(IApi api)
-        {
-            _api = api;
-        }
 
         /// <summary>
         /// Adds a new type to build page types from
@@ -51,7 +39,6 @@ namespace Piranha.AttributeBuilder
         /// </summary>
         public abstract T Build();
 
-        #region Private methods
         /// <summary>
         /// Gets the possible content type for the given type.
         /// </summary>
@@ -82,6 +69,13 @@ namespace Piranha.AttributeBuilder
                     ListExpand = attr.ListExpand
                 };
                 int? sortOrder = attr.SortOrder != Int32.MaxValue ? attr.SortOrder : (int?)null;
+
+                // Get optional description
+                var descAttr = prop.GetCustomAttribute<RegionDescriptionAttribute>();
+                if (descAttr != null)
+                {
+                    regionType.Description = descAttr.Text;
+                }                
 
                 Type type = null;
 
@@ -160,7 +154,8 @@ namespace Piranha.AttributeBuilder
                         Id = prop.Name,
                         Title = attr.Title,
                         Type = appFieldType.TypeName,
-                        Options = attr.Options
+                        Options = attr.Options,
+                        Placeholder = attr.Placeholder
                     };
                 }
             }
@@ -193,6 +188,5 @@ namespace Piranha.AttributeBuilder
                 }
             }
         }
-        #endregion
     }
 }

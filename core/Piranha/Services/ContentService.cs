@@ -8,12 +8,14 @@
  * 
  */
 
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using AutoMapper;
 using Piranha.Data;
 using Piranha.Models;
 
@@ -27,14 +29,17 @@ namespace Piranha.Services
         //
         // Members
         protected readonly IServiceProvider _services;
+        protected readonly IMapper _mapper;
 
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="service">The current service provider</param>
-        public ContentService(IServiceProvider services)
+        /// <param name="mapper">The AutoMapper instance to use</param>
+        public ContentService(IServiceProvider services, IMapper mapper)
         {
             _services = services;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -269,7 +274,7 @@ namespace Piranha.Services
                     var model = Create<T>(type);
 
                     // Map basic fields
-                    App.Mapper.Map<TContent, TModelBase>(content, model);
+                    _mapper.Map<TContent, TModelBase>(content, model);
 
                     if (model is Models.RoutedContent)
                     {
@@ -364,7 +369,7 @@ namespace Piranha.Services
             content.Created = DateTime.Now;
 
             // Map basic fields
-            App.Mapper.Map<TModelBase, TContent>(model, content);
+            _mapper.Map<TModelBase, TContent>(model, content);
 
             // Map regions
             var currentRegions = type.Regions.Select(r => r.Id).ToArray();
@@ -445,7 +450,16 @@ namespace Piranha.Services
                                         {
                                             param.Add(scope.ServiceProvider.GetService(p.ParameterType));
                                         }
-                                        init.Invoke(val, param.ToArray());
+
+                                        // Check for async
+                                        if (typeof(Task).IsAssignableFrom(init.ReturnType))
+                                        {
+                                            Task.Run(async () => await (Task)init.Invoke(val, param.ToArray())).Wait();
+                                        }
+                                        else
+                                        {
+                                            init.Invoke(val, param.ToArray());
+                                        }
                                     }
                                 }
                                 prop.SetValue(model, val);
@@ -514,7 +528,16 @@ namespace Piranha.Services
                                         {
                                             param.Add(scope.ServiceProvider.GetService(p.ParameterType));
                                         }
-                                        init.Invoke(val, param.ToArray());
+
+                                        // Check for async
+                                        if (typeof(Task).IsAssignableFrom(init.ReturnType))
+                                        {
+                                            Task.Run(async () => await (Task)init.Invoke(val, param.ToArray())).Wait();
+                                        }
+                                        else
+                                        {
+                                            init.Invoke(val, param.ToArray());
+                                        }
                                     }
                                 }
                                 prop.SetValue(model, val);
@@ -864,7 +887,16 @@ namespace Piranha.Services
                         {
                             param.Add(scope.ServiceProvider.GetService(p.ParameterType));
                         }
-                        init.Invoke(val, param.ToArray());
+
+                        // Check for async
+                        if (typeof(Task).IsAssignableFrom(init.ReturnType))
+                        {
+                            Task.Run(async () => await (Task)init.Invoke(val, param.ToArray())).Wait();
+                        }
+                        else
+                        {
+                            init.Invoke(val, param.ToArray());
+                        }
                     }
                 }
                 return val;
@@ -999,7 +1031,16 @@ namespace Piranha.Services
                 {
                     param.Add(scope.ServiceProvider.GetService(p.ParameterType));
                 }
-                init.Invoke(field, param.ToArray());
+
+                // Check for async
+                if (typeof(Task).IsAssignableFrom(init.ReturnType))
+                {
+                    Task.Run(async () => await (Task)init.Invoke(field, param.ToArray())).Wait();
+                }
+                else
+                {
+                    init.Invoke(field, param.ToArray());
+                }
             }
             return field;
         }

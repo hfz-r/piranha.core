@@ -63,6 +63,21 @@ namespace Piranha.Manager
         public List<string> Styles { get; private set; }
 
         /// <summary>
+        /// The currently registrered partial views.
+        /// </summary>
+        public List<string> Partials { get; private set; }
+
+        /// <summary>
+        /// The currently registered preview sizes.
+        /// </summary>
+        public List<PreviewSize> PreviewSizes { get; private set; } = new List<PreviewSize>() {
+            new PreviewSize { Title = "Desktop", Width = "100%", IconCss = "fas fa-desktop" },
+            new PreviewSize { Title = "Laptop", Width = "1200px", IconCss = "fas fa-laptop" },
+            new PreviewSize { Title = "Tablet", Width = "768px", IconCss = "fas fa-tablet-alt" },
+            new PreviewSize { Title = "Mobile", Width = "320px", IconCss = "fas fa-mobile-alt" }
+        };
+
+        /// <summary>
         /// Gets the Author
         /// </summary>
         public string Author => "Piranha";
@@ -111,6 +126,7 @@ namespace Piranha.Manager
         /// Default constructor.
         /// </summary>
         public Module() {
+            Partials = new List<string>();
             Scripts = new List<string>();
             Styles = new List<string>();
         }

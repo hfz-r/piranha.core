@@ -33,7 +33,7 @@ namespace Piranha.Tests.Routers
         private Guid TAG2_ID = Guid.NewGuid();
 
         [PageType(Title = "My PageType")]
-        public class MyPage : Models.BlogPage<MyPage>
+        public class MyPage : Models.ArchivePage<MyPage>
         {
         }
 
@@ -47,7 +47,7 @@ namespace Piranha.Tests.Routers
 
         protected override void Init() {
             using (var api = new Api(GetDb(), new ContentServiceFactory(services), storage)) {
-                Piranha.App.Init(api);
+                Piranha.App.Init();
 
                 var pageBuilder = new PageTypeBuilder(api)
                     .AddType(typeof(MyPage));

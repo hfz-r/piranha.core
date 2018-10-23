@@ -36,7 +36,7 @@ namespace Piranha.Repositories
             : base(db, cache) 
         { 
             this.api = api;
-            this.contentService = factory.Create<Site, SiteField, Models.SiteContentBase>();
+            this.contentService = factory.CreateSiteService();
         }
 
         /// <summary>
@@ -210,6 +210,10 @@ namespace Piranha.Repositories
 
                 contentService.Transform(content, type, site);
 
+                // Since we've updated global site content, update the
+                // global last modified date for the site.
+                site.ContentLastModified = DateTime.Now;
+
                 db.SaveChanges();
 
                 if (cache != null)
@@ -350,6 +354,9 @@ namespace Piranha.Repositories
 
             foreach (var page in pages.Where(p => p.ParentId == parentId).OrderBy(p => p.SortOrder)) {
                 var item = App.Mapper.Map<Page, Models.SitemapItem>(page);
+
+                if (!string.IsNullOrEmpty(page.RedirectUrl))
+                    item.Permalink = page.RedirectUrl;
 
                 item.Level = level;
                 item.PageTypeName = pageTypes.First(t => t.Id == page.PageTypeId).Title;

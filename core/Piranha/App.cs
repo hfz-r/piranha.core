@@ -178,10 +178,18 @@ namespace Piranha
         /// <summary>
         /// Initializes the application object.
         /// </summary>
-        /// <param name="api">The current api</param>
+        public static void Init()
+        {
+            Instance.Initialize();
+        }
+
+        /// <summary>
+        /// Initializes the application object.
+        /// </summary>
+        [Obsolete("Please refer to App.Init()")]
         public static void Init(IApi api)
         {
-            Instance.Initialize(api);
+            Instance.Initialize();
         }
 
         /// <summary>
@@ -218,7 +226,7 @@ namespace Piranha
         /// Initializes the application object.
         /// </summary>
         /// <param name="api">The current api</param>
-        private void Initialize(IApi api)
+        private void Initialize()
         {
             if (!_isInitialized)
             {
@@ -290,9 +298,11 @@ namespace Piranha
                                 .ForMember(s => s.Description, o => o.Ignore())
                                 .ForMember(s => s.Hostnames, o => o.Ignore())
                                 .ForMember(s => s.IsDefault, o => o.Ignore())
+                                .ForMember(s => s.Culture, o => o.Ignore())
                                 .ForMember(s => s.Fields, o => o.Ignore())
                                 .ForMember(s => s.Created, o => o.Ignore())
-                                .ForMember(s => s.LastModified, o => o.Ignore());
+                                .ForMember(s => s.LastModified, o => o.Ignore())
+                                .ForMember(s => s.ContentLastModified, o => o.Ignore());
                             cfg.CreateMap<Data.Tag, Data.Tag>()
                                 .ForMember(t => t.Id, o => o.Ignore())
                                 .ForMember(t => t.Created, o => o.Ignore());
@@ -309,7 +319,7 @@ namespace Piranha
 
                         // Compose content types
                         _contentTypes.Register<Models.IPage>("Page", "Page");
-                        _contentTypes.Register<Models.IBlogPage>("Blog", "Archive", true);
+                        _contentTypes.Register<Models.IArchivePage>("Blog", "Archive", true);
 
                         // Compose field types
                         _fields.Register<Extend.Fields.CheckBoxField>();

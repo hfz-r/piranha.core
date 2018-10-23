@@ -15,7 +15,7 @@ namespace Piranha.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.0-rtm-30799");
+                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024");
 
             modelBuilder.Entity("Piranha.Data.Alias", b =>
                 {
@@ -512,7 +512,12 @@ namespace Piranha.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<DateTime?>("ContentLastModified");
+
                     b.Property<DateTime>("Created");
+
+                    b.Property<string>("Culture")
+                        .HasMaxLength(6);
 
                     b.Property<string>("Description")
                         .HasMaxLength(256);

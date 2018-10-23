@@ -81,7 +81,7 @@ namespace Piranha.Tests.Repositories
         }
 
         [PageType(Title = "My BlogType")]
-        public class MyBlogPage : Models.BlogPage<MyBlogPage>
+        public class MyBlogPage : Models.ArchivePage<MyBlogPage>
         {
             [Region]
             public TextField Ingress { get; set; }
@@ -126,7 +126,7 @@ namespace Piranha.Tests.Repositories
                 .BuildServiceProvider();
 
             using (var api = new Api(GetDb(), new ContentServiceFactory(services), storage, cache)) {
-                Piranha.App.Init(api);
+                Piranha.App.Init();
 
                 Piranha.App.Fields.Register<MyFourthField>();
 
@@ -876,7 +876,7 @@ namespace Piranha.Tests.Repositories
                     api.Pages.Save(page);
                 });
 
-                Assert.Equal("Can not set copy of an copy", exn.Message);
+                Assert.Equal("Can not set copy of a copy", exn.Message);
             }
         }
 

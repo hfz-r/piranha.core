@@ -13,9 +13,11 @@ using Piranha.Manager;
 using Piranha.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Piranha.Areas.Manager.Controllers
 {
@@ -25,6 +27,7 @@ namespace Piranha.Areas.Manager.Controllers
         private const string COOKIE_SELECTEDSITE = "PiranhaManager_SelectedSite";
         private readonly PageEditService editService;
         private readonly IContentService<Data.Page, Data.PageField, Piranha.Models.PageBase> contentService;
+        private readonly IHubContext<Hubs.PreviewHub> _hub;
 
         /// <summary>
         /// Default constructor.
@@ -32,9 +35,10 @@ namespace Piranha.Areas.Manager.Controllers
         /// <param name="api">The current api</param>
         /// <param name="editService">The current page edit service</param>
         /// <param name="factory">The content service factory</param>
-        public PageController(IApi api, PageEditService editService, IContentServiceFactory factory) : base(api) { 
+        public PageController(IApi api, PageEditService editService, IContentServiceFactory factory, IHubContext<Hubs.PreviewHub> hub) : base(api) { 
             this.editService = editService;
             this.contentService = factory.CreatePageService();
+            _hub = hub;
         }
 
         /// <summary>
@@ -102,16 +106,29 @@ namespace Piranha.Areas.Manager.Controllers
         /// <param name="sortOrder">The sort order</param>
         /// <param name="parentId">The parent id</param>
         /// <param name="siteId">The optional site id</param>
-        [Route("manager/page/add/{type}/{sortOrder:int}/{parentId:Guid?}/{siteId:Guid?}")]
+        [Route("manager/page/add/{type}/{sortOrder:int}/{parentId:Guid?}")]
         [Authorize(Policy = Permission.PagesAdd)]
-        public IActionResult AddAt(string type, int sortOrder, Guid? parentId = null, Guid? siteId = null) {
-            var model = editService.Create(type, siteId);
+        public IActionResult AddAt(string type, int sortOrder, Guid? parentId = null) {
+            return AddAt(Guid.Empty, type, sortOrder, parentId);
+        }
+
+        /// <summary>
+        /// Adds a new page of the given type at the specified position.
+        /// </summary>
+        /// <param name="type">The page type id</param>
+        /// <param name="sortOrder">The sort order</param>
+        /// <param name="parentId">The parent id</param>
+        /// <param name="siteId">The optional site id</param>
+        [Route("manager/page/add/site/{siteId:Guid}/{type}/{sortOrder:int}/{parentId:Guid?}")]
+        [Authorize(Policy = Permission.PagesAdd)]
+        public IActionResult AddAt(Guid siteId, string type, int sortOrder, Guid? parentId = null) {
+            var model = editService.Create(type, siteId != Guid.Empty ? siteId : (Guid?)null);
 
             model.ParentId = parentId;
             model.SortOrder = sortOrder;
 
             return View("Edit", model);
-        }
+        }        
 
         /// <summary>
         /// Adds a new copy of the specified page.
@@ -148,6 +165,16 @@ namespace Piranha.Areas.Manager.Controllers
             return View("Edit", model);
         }
 
+        [Route("manager/page/preview/{id:Guid}")]
+        [Authorize(Policy = Permission.PagesEdit)]
+        public IActionResult Preview(Guid id) {
+            var page = api.Pages.GetById<Piranha.Models.PageInfo>(id);
+
+            if (page != null)
+                return View("_Preview", new Models.PreviewModel { Id = id, Permalink = page.Permalink });
+            return NotFound();
+        }
+
         /// <summary>
         /// Detaches a copied page.
         /// </summary>
@@ -175,7 +202,7 @@ namespace Piranha.Areas.Manager.Controllers
         [HttpPost]
         [Route("manager/page/save")]
         [Authorize(Policy = Permission.PagesSave)]
-        public IActionResult Save(Models.PageEditModel model) {
+        public async Task<IActionResult> Save(Models.PageEditModel model) {
             // Validate
             if (string.IsNullOrWhiteSpace(model.Title)) {
                 return BadRequest();
@@ -185,6 +212,9 @@ namespace Piranha.Areas.Manager.Controllers
 
             // Save
             if (ret) {
+                if (_hub != null)
+                    await _hub.Clients.All.SendAsync("Update", model.Id);
+
                 if (!string.IsNullOrWhiteSpace(alias))
                     return Json(new
                     {
@@ -256,6 +286,16 @@ namespace Piranha.Areas.Manager.Controllers
         [Route("manager/pages/move")]
         [Authorize(Policy = Permission.PagesEdit)]
         public IActionResult Move([FromBody]Models.PageStructureModel structure) {
+            Guid? siteId = null;
+
+            if (structure.Items.Count > 0)
+            {
+                var page = api.Pages.GetById(new Guid(structure.Items[0].Id));
+
+                if (page != null)
+                    siteId = page.SiteId;
+            }
+
             for (var n = 0; n < structure.Items.Count; n++) {
                 var moved = MovePage(structure.Items[n], n);
                 if (moved)
@@ -263,7 +303,7 @@ namespace Piranha.Areas.Manager.Controllers
             }
             using (var config = new Config(api)) {
                 return View("Partial/_Sitemap", new Models.SitemapModel() {
-                    Sitemap = api.Sites.GetSitemap(onlyPublished: false),
+                    Sitemap = api.Sites.GetSitemap(siteId, onlyPublished: false),
                     ExpandedLevels = config.ManagerExpandedSitemapLevels
                 });
             }
@@ -295,8 +335,7 @@ namespace Piranha.Areas.Manager.Controllers
                 var regionType = pageType.Regions.SingleOrDefault(r => r.Id == model.RegionTypeId);
 
                 if (regionType != null) {
-                    var region = Piranha.Models.DynamicPage.CreateRegion(api,
-                        model.PageTypeId, model.RegionTypeId);
+                    var region = contentService.CreateDynamicRegion(pageType, model.RegionTypeId);
 
                     var editModel = (Models.PageEditRegionCollection)editService.CreateRegion(regionType, 
                         new List<object>() { region});
@@ -336,6 +375,12 @@ namespace Piranha.Areas.Manager.Controllers
         [Route("manager/page/modal/{siteId:Guid?}")]
         [Authorize(Policy = Permission.Pages)]
         public IActionResult Modal(Guid? siteId = null) {
+            if (!siteId.HasValue)
+            {
+                var site = Request.Cookies[COOKIE_SELECTEDSITE];
+                if (!string.IsNullOrEmpty(site))
+                    siteId = new Guid(site);
+            }
             return View(Models.PageModalModel.GetBySiteId(api, siteId));
         }  
         

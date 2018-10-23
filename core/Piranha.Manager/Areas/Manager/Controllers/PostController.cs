@@ -8,30 +8,35 @@
  * 
  */
 
-using Piranha.Areas.Manager.Services;
-using Piranha.Manager;
-using Piranha.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Piranha.Areas.Manager.Services;
+using Piranha.Manager;
+using Piranha.Services;
 
 namespace Piranha.Areas.Manager.Controllers
 {
     [Area("Manager")]
     public class PostController : ManagerAreaControllerBase
     {
+        private const string COOKIE_SELECTEDSITE = "PiranhaManager_SelectedSite";
         private readonly PostEditService editService;
         private readonly IContentService<Data.Post, Data.PostField, Piranha.Models.PostBase> contentService;
+        private readonly IHubContext<Hubs.PreviewHub> _hub;
         
         /// <summary>
         /// Default constructor.
         /// </summary>
         /// <param name="api">The current api</param>
-        public PostController(IApi api, PostEditService editService, IContentServiceFactory factory) : base(api) { 
+        public PostController(IApi api, PostEditService editService, IContentServiceFactory factory, IHubContext<Hubs.PreviewHub> hub) : base(api) { 
             this.editService = editService;
             this.contentService = factory.CreatePostService();
+            _hub = hub;
         }
 
         /// <summary>
@@ -57,6 +62,16 @@ namespace Piranha.Areas.Manager.Controllers
             return View("Edit", model);
         }
 
+        [Route("manager/post/preview/{id:Guid}")]
+        [Authorize(Policy = Permission.PagesEdit)]
+        public IActionResult Preview(Guid id) {
+            var post = api.Posts.GetById<Piranha.Models.PostInfo>(id);
+
+            if (post != null)
+                return View("_Preview", new Models.PreviewModel { Id = id, Permalink = post.Permalink });
+            return NotFound();
+        }
+
         /// <summary>
         /// Saves the given post model
         /// </summary>
@@ -64,7 +79,7 @@ namespace Piranha.Areas.Manager.Controllers
         [HttpPost]
         [Route("manager/post/save")]
         [Authorize(Policy = Permission.PostsSave)]
-        public IActionResult Save(Models.PostEditModel model) {
+        public async Task<IActionResult> Save(Models.PostEditModel model) {
             // Validate
             if (string.IsNullOrWhiteSpace(model.Title)) {
                 return BadRequest();
@@ -77,6 +92,9 @@ namespace Piranha.Areas.Manager.Controllers
 
             // Save
             if (ret) {
+                if (_hub != null)
+                    await _hub.Clients.All.SendAsync("Update", model.Id);
+
                 if (!string.IsNullOrWhiteSpace(alias))
                     return Json(new
                     {
@@ -180,8 +198,7 @@ namespace Piranha.Areas.Manager.Controllers
                 var regionType = postType.Regions.SingleOrDefault(r => r.Id == model.RegionTypeId);
 
                 if (regionType != null) {
-                    var region = Piranha.Models.DynamicPost.CreateRegion(api,
-                        model.PageTypeId, model.RegionTypeId);
+                    var region = contentService.CreateDynamicRegion(postType, model.RegionTypeId);
 
                     var editModel = (Models.PageEditRegionCollection)editService.CreateRegion(regionType, 
                         new List<object>() { region });
@@ -218,6 +235,12 @@ namespace Piranha.Areas.Manager.Controllers
         [Route("manager/post/modal/{siteId:Guid?}/{blogId:Guid?}")]
         [Authorize(Policy = Permission.Posts)]
         public IActionResult Modal(Guid? siteId = null, Guid? blogId = null) {
+            if (!siteId.HasValue)
+            {
+                var site = Request.Cookies[COOKIE_SELECTEDSITE];
+                if (!string.IsNullOrEmpty(site))
+                    siteId = new Guid(site);
+            }
             return View(Models.PostModalModel.GetByBlogId(api, siteId, blogId));
         }  
     }

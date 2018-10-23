@@ -250,13 +250,13 @@
 
     <div class="form-dimmer"></div>
     <div class="row">
-        <div class="col-sm-12 buttons">
+        <div class="col-sm-12 buttons buttons-fixed">
             <!-- Back -->
-            <a href="@Url.Action("List", "Page", new { pageId = Model.Id })" class="btn btn-info">
+            <a href="@Url.Action("List", "Page", new { pageId = Model.Id })" class="btn btn-info btn-icon">
                 <span class="fas fa-angle-left"></span>
             </a>
             <!-- Settings -->
-            <button id="btn-settings" type="button" class="btn btn-primary">
+            <button id="btn-settings" type="button" class="btn btn-primary btn-icon">
                 <span class="fas fa-cog"></span>
             </button>
 
@@ -279,7 +279,9 @@
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                    <li><a href="~/@Model.Slug" target="_blank">Preview</a></li>
+                    @if (Model.Id != Guid.Empty) {
+                        <li><a href="@Url.Action("Preview", new { id = Model.Id })" target="_preview">Preview</a></li>
+                    }
                     @if ((await Authorization.AuthorizeAsync(User, Piranha.Manager.Permission.PagesPublish)).Succeeded) {
                         if (Model.Published.HasValue) {
                             <li><a id="submit-unpublish" href="#">Unpublish</a></li>

@@ -23666,6 +23666,7 @@ var mdeEditors = new Array();
 function RegisterMarkdown (e) {
     var preview = $(e).parent().parent().find('.content-preview');
     var simplemde = new SimpleMDE({ 
+        forceSync: true,
         element: e,
         status: false,
         spellChecker: false,
@@ -23724,7 +23725,7 @@ $(document).ready(function () {
     });
 
     $('.datetimepicker').datetimepicker({
-        format: "YYYY-MM-DD hh:mm"
+        format: "YYYY-MM-DD HH:mm"
     });
 
     $('.select2').select2({
@@ -23736,6 +23737,7 @@ $(document).ready(function () {
     });
 
     manager.tools.positionblocks();
+    manager.tools.positionButtonsFixed();
 });
 
 //
@@ -23743,6 +23745,21 @@ $(document).ready(function () {
 //
 $('body').tooltip({
     selector: '[data-toggle="tooltip"]'
+});
+
+//
+// Count fields
+//
+$(document).on('keyup', '.count-me', function () {
+    var max = Number($(this).attr('maxlength'));
+    var length = $(this).val().length;
+
+    if (length > max) {
+        $(this).val($(this).val().substring(0, max));
+        length = max;
+    }
+
+    $(this).next().text(length + '/' + max);
 });
 
 //
@@ -23822,7 +23839,7 @@ $(document).on('click', '.form-dimmer', function (e) {
 $(document).on('click', '.block-html-swap', function (e) {
     e.preventDefault();
 
-    var columns = $(this).parent().parent().find('.col-sm-6');
+    var columns = $(this).parent().parent().find('.block-editor');
     if (columns.length == 2) {
         var col1 = $(columns[0]).html();
         var col2 = $(columns[1]).html();
@@ -23830,6 +23847,11 @@ $(document).on('click', '.block-html-swap', function (e) {
         $(columns[0]).html(col2);
         $(columns[1]).html(col1);
     }
+});
+$(document).on('click', '.block-group-info', function (e) {
+    e.preventDefault();
+
+    $(this).parent().find('.block-expand').click();
 });
 $(document).on('click', '.block-group .block-expand', function (e) {
     e.preventDefault();
@@ -23852,6 +23874,10 @@ $(document).on('blur','.block .check-empty', function () {
 $(window).scroll(function () {
     manager.tools.positionblocks();
 });
+$(window).resize(function () {
+    manager.tools.positionButtonsFixed();
+});
+
 
 //
 // Panel toggle buttons
@@ -23975,6 +24001,14 @@ $(document).on('keyup', '.table-filter #blog-search', function (e) {
     var table = $(this).parent().data().table;
 
     manager.tools.tablesort(table, data.filter, $('#blog-type-filter').val(), $('#blog-category-filter').val(), $('#blog-search').val());
+});
+
+$(document).on('keyup', '.table-filter #media-search', function (e) {
+    e.preventDefault();
+
+    var table = $(this).parent().parent().data().table;
+
+    manager.tools.tablesort(table, '', '', '', $(this).val());
 });
 
 //
@@ -24260,34 +24294,12 @@ var manager = {
         setupBlockSortable: function() {
             sortable('.page-blocks-body .sortable');
             sortable('.block-group-body');
+        },
 
-            /*
-            console.log('removing .sortable events');
-            sortable('.page-blocks-body .sortable', 'destroy');
-            var sortableBlocks = sortable('.page-blocks-body .sortable', {
-                handle: '.sortable-handle',
-                items: ':not(.unsortable)'
-            });
-            console.log('Adding .sortable events');
-            for (var n = 0; n < sortableBlocks.length; n++) {
-                sortableBlocks[n].addEventListener('sortupdate', function(e) {
-                    manager.tools.recalcblocks();
-                });
-            }
+        positionButtonsFixed: function() {
+            var diff = 1420 - $(window).width();
 
-            console.log('removing .block-group-body events');
-            sortable('.block-group-body', 'destroy');
-            var sortableBlockItems = sortable('.block-group-body', {
-                handle: '.sortable-handle',
-                items: ':not(.unsortable)'
-            });
-            console.log('Adding .block-group-body events');
-            for (var n = 0; n < sortableBlockItems.length; n++) {
-                sortableBlockItems[n].addEventListener('sortupdate', function(e) {
-                    manager.tools.recalcblocks();
-                });
-            }
-            */
+            $('.buttons-fixed').css({ left: Math.min(1152, 1152 - diff) });
         }
     }
 };

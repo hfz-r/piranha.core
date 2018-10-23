@@ -105,7 +105,7 @@ namespace Piranha.Tests.Repositories
                 .BuildServiceProvider();
 
             using (var api = new Api(GetDb(), new ContentServiceFactory(services), storage, cache)) {
-                Piranha.App.Init(api);
+                Piranha.App.Init();
 
                 Piranha.App.Fields.Register<MyFourthField>();                
 
@@ -276,6 +276,26 @@ namespace Piranha.Tests.Repositories
                 var none = api.Posts.GetBySlug(Guid.NewGuid(), "none-existing-slug");
 
                 Assert.Null(none);
+            }
+        }
+
+        [Fact]
+        public void GetAll() {
+            using (var api = new Api(GetDb(), new ContentServiceFactory(services), storage, cache)) {
+                var posts = api.Posts.GetAll();
+
+                Assert.NotNull(posts);
+                Assert.NotEmpty(posts);
+            }
+        }
+
+        [Fact]
+        public void GetAllBaseClass() {
+            using (var api = new Api(GetDb(), new ContentServiceFactory(services), storage, cache)) {
+                var posts = api.Posts.GetAll<Models.PostBase>();
+
+                Assert.NotNull(posts);
+                Assert.NotEmpty(posts);
             }
         }
 
