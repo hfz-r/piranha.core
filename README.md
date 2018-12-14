@@ -1,4 +1,4 @@
-# Welcome to Piranha.Core
+# Welcome to Piranha.Core [![Gitter chat](https://badges.gitter.im/PiranhaCMS/Piranha.png)](https://gitter.im/PiranhaCMS/Piranha)
 
 | Build server | Platform     | Build status |
 |--------------|--------------|--------------|
@@ -34,7 +34,7 @@ Piranha is currently built for `NetStandard 2.0` and uses the following awesome 
     > cd piranha.core
     > dotnet restore
     > dotnet build
-    > cd examples/CoreWeb
+    > cd examples/MvcWeb
     > dotnet run
     
 #### Build and update javascript/css assets
@@ -42,7 +42,7 @@ Piranha is currently built for `NetStandard 2.0` and uses the following awesome 
     > cd piranha.core/core/Piranha.Manager
     > npm install
     > bower install
-    > cd ../../examples/CoreWeb
+    > cd ../../examples/MvcWeb
     > npm install
     > bower install
 
